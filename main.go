@@ -43,7 +43,7 @@ func writeJobs(jobs []extractedJob) {
 	w := csv.NewWriter(file)
 	defer w.Flush()
 
-	headers := []string{"ID", "Title", "Location", "Salary", "Summary"}
+	headers := []string{"Link", "Title", "Location", "Salary", "Summary"}
 
 	wErr := w.Write(headers)
 	checkErr(wErr)
@@ -57,6 +57,7 @@ func writeJobs(jobs []extractedJob) {
 
 func getPage(page int) []extractedJob{
 	var jobs []extractedJob
+	c := make(chan extractedJob)
 	pageURL := baseURL + "&start=" + strconv.Itoa(page*50)
 	fmt.Println("Requesting", pageURL)
 	res, err := http.Get(pageURL)
@@ -76,25 +77,33 @@ func getPage(page int) []extractedJob{
 		// location := card.Find(".companyLocation").Text()
 		// fmt.Println(id,title,location)
 
-		job := extractJob(card)
-		jobs = append(jobs, job)
+		// job := extractJob(card)
+		// jobs = append(jobs, job)
+
+		go extractJob(card, c)
 	})
+
+	for i := 0; i < searchCards.Length(); i++ {
+		job := <-c
+		jobs = append(jobs, job)
+	}
+	
 	return jobs
 }
-
-func extractJob(card *goquery.Selection) extractedJob {
+func extractJob(card *goquery.Selection, c chan<- extractedJob) {
 	id, _ := card.Attr("data-jk")
 	title := card.Find("h2>span").Text()
 	location := card.Find(".companyLocation").Text()
 	salary := cleanString(card.Find(".salary-snippet").Text())
 	summary := cleanString(card.Find(".job-snippet").Text())
 	fmt.Println(id,title,location, salary,summary)
-	return extractedJob{
+	c <- extractedJob{
 		id:       id,
 		title:    title,
 		location: location,
 		salary:   salary,
-		summary:  summary}
+		summary:  summary,
+	}
 }
 
 func cleanString(str string) string {
