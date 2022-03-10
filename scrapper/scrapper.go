@@ -1,4 +1,4 @@
-package main
+package scrapper
 
 import (
 	"encoding/csv"
@@ -20,15 +20,15 @@ type extractedJob struct {
 	summary  string
 }
 
-var baseURL string = "https://kr.indeed.com/jobs?q=python&limit=50"
-
-func main() {
+// Screape indeed by a term
+func Screape(term string) {
+	var baseURL string = "https://kr.indeed.com/jobs?q="+ term +"&limit=50"
 	var jobs []extractedJob
 	c := make(chan []extractedJob)
-	totalPages := getPages()
+	totalPages := getPages(baseURL)
 
 	for i := 0; i < totalPages; i++ {
-		go getPage(i, c)
+		go getPage(i,baseURL,  c)
 	}
 
 	for i := 0; i < totalPages; i++ {
@@ -60,10 +60,10 @@ func writeJobs(jobs []extractedJob) {
 	}
 }
 
-func getPage(page int, mainC chan<- []extractedJob) {
+func getPage(page int, url string, mainC chan<- []extractedJob) {
 	var jobs []extractedJob
 	c := make(chan extractedJob)
-	pageURL := baseURL + "&start=" + strconv.Itoa(page*50)
+	pageURL := url + "&start=" + strconv.Itoa(page*50)
 	fmt.Println("Requesting", pageURL)
 	res, err := http.Get(pageURL)
 	checkErr(err)
@@ -116,9 +116,9 @@ func cleanString(str string) string {
 	return strings.Join(strings.Fields(strings.TrimSpace(str)), " ")
 }
 
-func getPages() int {
+func getPages(url string) int {
 	pages := 0
-	res, err := http.Get(baseURL)
+	res, err := http.Get(url)
 	checkErr(err)
 	checkCode(res)
 

@@ -1,9 +1,9 @@
 package main
 
-import "github.com/plusbeauxjours/jobScrapper-GO/scrapper"
+import "GO-jobScrapper/scrapper"
 
 func main() {
-	scrapper.Scrape("term")
+	scrapper.Screape("term")
 }
 
 // go env -w GO111MODULE=on
@@ -11,3 +11,4 @@ func main() {
 
 // go env -w GO111MODULE=on
 // go get github.com/PuerkitoBio/goquery
+
