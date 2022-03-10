@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 	"github.com/labstack/echo"
-	"GO-jobScrapper/scrapper"
+	"github.com/plusbeauxjours/GO-jobScrapper/scrapper"
 )
 
 const fileName string = "jobs.csv"
